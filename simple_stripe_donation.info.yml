@@ -1,0 +1,11 @@
+name: Simple Stripe Donation
+type: module
+description: 'Lightweight one-time donation system powered by Stripe Checkout.'
+package: Payment
+core_version_requirement: ^10.3 || ^11
+php: 8.2
+configure: simple_stripe_donation.settings
+dependencies:
+  - drupal:views
+author: 'Nguyen Phu Dung'
+author_link: 'https://phudung.io.vn'

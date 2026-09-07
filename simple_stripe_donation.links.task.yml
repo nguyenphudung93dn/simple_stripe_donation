@@ -1,0 +1,13 @@
+simple_stripe_donation.report_tab:
+  title: 'Donations'
+  # Route owned by the shipped view's page display, not this module — see
+  # config/install/views.view.simple_stripe_donation_report.yml.
+  route_name: view.simple_stripe_donation_report.page_1
+  base_route: view.simple_stripe_donation_report.page_1
+  weight: -10
+
+simple_stripe_donation.settings_tab:
+  title: 'Settings'
+  route_name: simple_stripe_donation.settings
+  base_route: view.simple_stripe_donation_report.page_1
+  weight: 0

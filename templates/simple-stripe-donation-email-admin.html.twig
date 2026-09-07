@@ -1,0 +1,36 @@
+{#
+/**
+ * @file
+ * Admin new-donation notification email body.
+ *
+ * Available variables:
+ * - donation: The donation row object.
+ * - reference: Pre-formatted reference (e.g. DON-000123).
+ * - amount_display: Pre-formatted major-unit amount (e.g. "25.50").
+ * - currency: Uppercase ISO 4217 currency code.
+ * - date: Pre-formatted date string.
+ */
+#}
+<p>{{ 'New donation received'|t }}</p>
+<p>
+  {{ 'Donor:'|t }}<br>
+  {{ donation.anonymous ? 'Anonymous'|t : (donation.donor_name ?: 'Not provided'|t) }}
+</p>
+<p>
+  {{ 'Email:'|t }}<br>
+  {{ donation.donor_email }}
+</p>
+<p>
+  {{ 'Amount:'|t }}<br>
+  {{ amount_display }} {{ currency }}
+</p>
+<p>
+  {{ 'Donation:'|t }}<br>
+  {{ reference }}
+</p>
+{% if donation.message %}
+  <p>
+    {{ 'Message:'|t }}<br>
+    {{ donation.message }}
+  </p>
+{% endif %}

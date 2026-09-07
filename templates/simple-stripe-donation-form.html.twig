@@ -1,0 +1,21 @@
+{#
+/**
+ * @file
+ * Wraps the Simple Stripe Donation form.
+ *
+ * The individual "cards" (Amount, Dedication, Message) are built as
+ * containers inside DonationForm::buildForm() itself, each carrying its
+ * own .simple-stripe-donation-card class — this wrapper is just the outer
+ * layout column, not a card itself.
+ *
+ * Available variables:
+ * - form: The full donation form render array.
+ * - description: Optional block-supplied description text.
+ */
+#}
+<div class="simple-stripe-donation-form-wrapper">
+  {% if description %}
+    <div class="simple-stripe-donation-description">{{ description }}</div>
+  {% endif %}
+  {{ form }}
+</div>

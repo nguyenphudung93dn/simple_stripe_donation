@@ -1,0 +1,31 @@
+{#
+/**
+ * @file
+ * Donor donation receipt email body.
+ *
+ * Available variables:
+ * - donation: The donation row object.
+ * - reference: Pre-formatted reference (e.g. DON-000123).
+ * - amount_display: Pre-formatted major-unit amount (e.g. "25.50").
+ * - currency: Uppercase ISO 4217 currency code.
+ * - date: Pre-formatted date string.
+ */
+#}
+<p>{{ 'Thank you for your donation.'|t }}</p>
+<p>
+  {{ 'Donation reference:'|t }}<br>
+  {{ reference }}
+</p>
+<p>
+  {{ 'Amount:'|t }}<br>
+  {{ amount_display }} {{ currency }}
+</p>
+<p>
+  {{ 'Date:'|t }}<br>
+  {{ date }}
+</p>
+{% if donation.donor_name %}
+  <p>{{ 'Thank you for supporting us, @name.'|t({'@name': donation.donor_name}) }}</p>
+{% else %}
+  <p>{{ 'Thank you for supporting us.'|t }}</p>
+{% endif %}

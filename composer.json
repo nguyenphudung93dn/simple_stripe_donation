@@ -1,0 +1,22 @@
+{
+    "name": "drupal/simple_stripe_donation",
+    "type": "drupal-module",
+    "description": "Lightweight Stripe Checkout donation system for Drupal, independent of Drupal Commerce.",
+    "keywords": ["Drupal", "Stripe", "Donation", "Payment"],
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Nguyen Phu Dung",
+            "homepage": "https://phudung.io.vn"
+        }
+    ],
+    "homepage": "https://github.com/nguyenphudung93dn/simple_stripe_donation",
+    "support": {
+        "issues": "https://github.com/nguyenphudung93dn/simple_stripe_donation/issues",
+        "source": "https://github.com/nguyenphudung93dn/simple_stripe_donation"
+    },
+    "require": {
+        "php": ">=8.2",
+        "stripe/stripe-php": "^15.10 || ^16.0 || ^17.0 || ^18.0 || ^21.0"
+    }
+}

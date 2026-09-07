@@ -1,0 +1,67 @@
+simple_stripe_donation.settings:
+  path: '/admin/config/services/simple-stripe-donation'
+  defaults:
+    _form: '\Drupal\simple_stripe_donation\Form\SettingsForm'
+    _title: 'Simple Stripe Donation settings'
+  requirements:
+    _permission: 'administer simple stripe donation'
+
+simple_stripe_donation.donate:
+  path: '/donate'
+  defaults:
+    _form: '\Drupal\simple_stripe_donation\Form\DonationForm'
+    _title: 'Make a donation'
+  requirements:
+    _access: 'TRUE'
+
+simple_stripe_donation.donate_success:
+  path: '/donate/success'
+  defaults:
+    _controller: '\Drupal\simple_stripe_donation\Controller\DonationController::success'
+    _title: 'Donation status'
+  requirements:
+    _access: 'TRUE'
+
+simple_stripe_donation.donate_cancel:
+  path: '/donate/cancel'
+  defaults:
+    _controller: '\Drupal\simple_stripe_donation\Controller\DonationController::cancel'
+    _title: 'Donation not completed'
+  requirements:
+    _access: 'TRUE'
+
+simple_stripe_donation.webhook:
+  path: '/stripe-donation/webhook'
+  defaults:
+    _controller: '\Drupal\simple_stripe_donation\Controller\StripeWebhookController::handle'
+  methods: [POST]
+  requirements:
+    # Publicly reachable by design: Stripe cannot present a session or CSRF
+    # token. Access is instead gated by Stripe-Signature verification
+    # inside WebhookService, which rejects anything not genuinely signed
+    # by Stripe before any donation data is read or written.
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+simple_stripe_donation.detail:
+  path: '/admin/reports/simple-stripe-donations/{donation_id}'
+  defaults:
+    _controller: '\Drupal\simple_stripe_donation\Controller\DonationController::detail'
+    _title_callback: '\Drupal\simple_stripe_donation\Controller\DonationController::detailTitle'
+  requirements:
+    _permission: 'view simple stripe donations'
+    donation_id: '\d+'
+  options:
+    _admin_route: TRUE
+
+simple_stripe_donation.refund:
+  path: '/admin/reports/simple-stripe-donations/{donation_id}/refund'
+  defaults:
+    _form: '\Drupal\simple_stripe_donation\Form\RefundConfirmForm'
+    _title: 'Refund donation'
+  requirements:
+    _permission: 'manage simple stripe donations'
+    donation_id: '\d+'
+  options:
+    _admin_route: TRUE

@@ -1,0 +1,871 @@
+/**
+ * Simple Stripe Donation — self-contained styling.
+ *
+ * Every class is prefixed simple-stripe-donation- to avoid clashing with
+ * host theme CSS. This file is written to look correct on ANY host theme,
+ * including Bootstrap-based ones that inject their own classes onto core
+ * Drupal form markup (`.form-control`, `.btn`, `.form-check-input`, etc.)
+ * — identity-critical properties below use `!important` specifically to
+ * guarantee that, rather than relying on a specificity/load-order contest
+ * with a theme's stylesheet.
+ *
+ * Two things worth knowing about the markup this styles:
+ * - A `#type => radios` element WITH a title renders as
+ *   `<fieldset><legend>...</legend><div class="fieldset-wrapper">...`
+ *   — this is core behavior (core/modules/system/templates/fieldset.html.twig),
+ *   not theme-specific, so the fieldset/legend reset below is required on
+ *   every Drupal site, not just this one.
+ * - Colors/spacing/radius are exposed as CSS custom properties (--ssd-*)
+ *   scoped to the form wrapper, with sensible defaults below — a host
+ *   theme can still restyle the whole component on purpose by redeclaring
+ *   these variables higher up, without touching this file.
+ */
+
+.simple-stripe-donation-form-wrapper,
+.simple-stripe-donation-status,
+.simple-stripe-donation-report-summary,
+.simple-stripe-donation-detail {
+  --ssd-primary: #0e7490;
+  --ssd-primary-strong: #155e75;
+  --ssd-cta: #ea580c;
+  --ssd-cta-strong: #c2410c;
+  --ssd-cta-contrast: #ffffff;
+  --ssd-surface: #ffffff;
+  --ssd-surface-muted: #f8fafc;
+  --ssd-border: #e2e8f0;
+  --ssd-text: #0f172a;
+  --ssd-text-muted: #475569;
+  --ssd-danger: #b91c1c;
+  --ssd-danger-surface: #fef2f2;
+  --ssd-success: #15803d;
+  --ssd-success-surface: #f0fdf4;
+  --ssd-warning: #b45309;
+  --ssd-warning-surface: #fffbeb;
+  --ssd-radius: 0.75rem;
+  --ssd-radius-sm: 0.5rem;
+  --ssd-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+  --ssd-focus-ring: 0 0 0 3px rgba(14, 116, 144, 0.35);
+}
+
+.simple-stripe-donation-form-wrapper {
+  max-width: 30rem;
+  /* Center the form within whatever contains it — the page's main
+   * content column on /donate, or the block region wherever it's
+   * placed — rather than sticking to the left edge. */
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--ssd-text, #0f172a);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .simple-stripe-donation-form-wrapper,
+  .simple-stripe-donation-status,
+  .simple-stripe-donation-report-summary,
+  .simple-stripe-donation-detail {
+    --ssd-primary: #22d3ee;
+    --ssd-primary-strong: #67e8f9;
+    --ssd-cta: #fb923c;
+    --ssd-cta-strong: #fdba74;
+    --ssd-cta-contrast: #1c1917;
+    --ssd-surface: #111827;
+    --ssd-surface-muted: #1f2937;
+    --ssd-border: #334155;
+    --ssd-text: #f1f5f9;
+    --ssd-text-muted: #cbd5e1;
+    --ssd-danger: #fca5a5;
+    --ssd-danger-surface: rgba(185, 28, 28, 0.15);
+    --ssd-success: #4ade80;
+    --ssd-success-surface: rgba(21, 128, 61, 0.15);
+    --ssd-warning: #fbbf24;
+    --ssd-warning-surface: rgba(180, 83, 9, 0.15);
+    --ssd-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --ssd-focus-ring: 0 0 0 3px rgba(34, 211, 238, 0.35);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Card                                                                 */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-card {
+  background: var(--ssd-surface, #ffffff) !important;
+  border: 1px solid var(--ssd-border, #e2e8f0) !important;
+  border-radius: var(--ssd-radius, 0.75rem) !important;
+  box-shadow: var(--ssd-shadow, 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)) !important;
+  padding: 1.75rem;
+}
+
+@media (max-width: 30rem) {
+  .simple-stripe-donation-card {
+    padding: 1.25rem;
+    border-radius: var(--ssd-radius-sm, 0.5rem) !important;
+  }
+}
+
+/* The form is a stack of separate cards (Amount, Dedication, Message);
+ * space them apart. */
+.simple-stripe-donation-card + .simple-stripe-donation-card {
+  margin-top: 1rem;
+}
+
+.simple-stripe-donation-description {
+  margin: 0 0 1.25rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.95rem;
+}
+
+/* Shown above the form only while Stripe mode is set to Test, so nobody
+ * mistakes a test submission for a real donation. */
+.simple-stripe-donation-test-mode-notice {
+  margin: 0 0 1.25rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--ssd-danger-surface, #fef2f2);
+  color: var(--ssd-danger, #b91c1c);
+  border: 1px solid var(--ssd-danger, #b91c1c);
+  border-radius: var(--ssd-radius-sm, 0.5rem);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared field rhythm + fieldset/legend reset                          */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-card .form-item {
+  margin: 0 0 1.25rem;
+}
+
+.simple-stripe-donation-card label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ssd-text, #0f172a);
+}
+
+.simple-stripe-donation-card .description {
+  margin-top: 0.375rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.85rem;
+}
+
+/* A titled `radios`/`checkboxes` group renders as <fieldset><legend>,
+ * which browsers (and Bootstrap-based themes especially) give a large,
+ * floated, heading-like default appearance. Reset it back to looking
+ * like a normal field label, on every theme. */
+.simple-stripe-donation-card fieldset {
+  all: unset;
+  display: block !important;
+  border: 0 !important;
+  margin: 0 0 1.25rem !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+}
+
+.simple-stripe-donation-card legend,
+.simple-stripe-donation-card .fieldset-legend {
+  float: none !important;
+  display: block !important;
+  width: auto !important;
+  padding: 0 !important;
+  margin: 0 0 0.5rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: var(--ssd-text, #0f172a) !important;
+}
+
+.simple-stripe-donation-card .fieldset-wrapper {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Text / email / textarea inputs                                       */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-card input[type='text'],
+.simple-stripe-donation-card input[type='email'],
+.simple-stripe-donation-card input[type='tel'],
+.simple-stripe-donation-card textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.625rem 0.875rem !important;
+  min-height: 44px;
+  background: var(--ssd-surface, #ffffff) !important;
+  color: var(--ssd-text, #0f172a) !important;
+  border: 1px solid var(--ssd-border, #e2e8f0) !important;
+  border-radius: var(--ssd-radius-sm, 0.5rem) !important;
+  box-shadow: none !important;
+  font-size: 1rem !important;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.simple-stripe-donation-card textarea {
+  min-height: auto;
+  resize: vertical;
+}
+
+.simple-stripe-donation-card input[type='text']:hover,
+.simple-stripe-donation-card input[type='email']:hover,
+.simple-stripe-donation-card input[type='tel']:hover,
+.simple-stripe-donation-card textarea:hover {
+  border-color: var(--ssd-primary, #0e7490) !important;
+}
+
+.simple-stripe-donation-card input[type='text']:focus,
+.simple-stripe-donation-card input[type='email']:focus,
+.simple-stripe-donation-card input[type='tel']:focus,
+.simple-stripe-donation-card textarea:focus {
+  outline: none;
+  border-color: var(--ssd-primary, #0e7490) !important;
+  box-shadow: var(--ssd-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.35)) !important;
+}
+
+.simple-stripe-donation-card input::placeholder,
+.simple-stripe-donation-card textarea::placeholder {
+  color: var(--ssd-text-muted, #475569);
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pill-style radios: amount presets (3/row) + dedication toggle (2/row) */
+/* ------------------------------------------------------------------ */
+
+/*
+ * A titled radios group always renders as
+ * <fieldset>...<div class="fieldset-wrapper"><div>[.form-item, ...]</div>[.description]</fieldset>
+ * (core behavior, see the fieldset/legend reset above) — `.fieldset-wrapper > div`
+ * is that flat container of options, guaranteed by core regardless of theme.
+ * `:not(.description)` matters here: when the radios group also has a
+ * #description, that renders as its OWN direct child <div> of
+ * .fieldset-wrapper too (a sibling of the options container, not
+ * wrapped inside it) — without the exclusion it would get forced into
+ * the same narrow grid as the option pills instead of reading as a
+ * normal full-width line of help text.
+ */
+.simple-stripe-donation-amount-presets .fieldset-wrapper > div:not(.description) {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.625rem !important;
+}
+
+.simple-stripe-donation-dedication-toggle .fieldset-wrapper > div:not(.description) {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 0.625rem !important;
+  max-width: 16rem;
+}
+
+.simple-stripe-donation-card .fieldset-wrapper > .description {
+  width: 100%;
+}
+
+.simple-stripe-donation-amount-presets .form-item,
+.simple-stripe-donation-dedication-toggle .form-item {
+  margin: 0 !important;
+  position: relative;
+}
+
+/* The "Custom" preset (always value="other") spans the full grid row on
+ * its own line below the presets, as its own larger, more prominent
+ * button rather than one pill among equals. */
+.simple-stripe-donation-amount-presets .form-item:has(input[value='other']) {
+  grid-column: 1 / -1;
+}
+
+.simple-stripe-donation-amount-presets .form-item:has(input[value='other']) label {
+  min-height: 52px;
+  font-size: 1.05rem !important;
+}
+
+/* The native input stays in the DOM (and keyboard/screen-reader
+ * operable) but is visually replaced by the label, styled as a pill. */
+.simple-stripe-donation-amount-presets input[type='radio'],
+.simple-stripe-donation-dedication-toggle input[type='radio'] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap;
+  border: 0 !important;
+}
+
+.simple-stripe-donation-amount-presets label,
+.simple-stripe-donation-dedication-toggle label {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem !important;
+  margin: 0 !important;
+  background: var(--ssd-surface, #ffffff) !important;
+  color: var(--ssd-text, #0f172a) !important;
+  border: 1.5px solid var(--ssd-border, #e2e8f0) !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.simple-stripe-donation-amount-presets label:hover,
+.simple-stripe-donation-dedication-toggle label:hover {
+  border-color: var(--ssd-primary, #0e7490) !important;
+  color: var(--ssd-primary-strong, #155e75) !important;
+}
+
+.simple-stripe-donation-amount-presets input[type='radio']:checked + label,
+.simple-stripe-donation-dedication-toggle input[type='radio']:checked + label {
+  background: var(--ssd-primary, #0e7490) !important;
+  border-color: var(--ssd-primary, #0e7490) !important;
+  color: #ffffff !important;
+}
+
+.simple-stripe-donation-amount-presets input[type='radio']:focus-visible + label,
+.simple-stripe-donation-dedication-toggle input[type='radio']:focus-visible + label {
+  box-shadow: var(--ssd-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.35));
+}
+
+.simple-stripe-donation-amount-presets input[type='radio']:checked + label::after,
+.simple-stripe-donation-dedication-toggle input[type='radio']:checked + label::after {
+  content: '';
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.4em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5L6.5 12L13 4'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5L6.5 12L13 4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ------------------------------------------------------------------ */
+/* Checkbox (anonymous)                                                 */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Fully custom checkbox, drawn with ::before/::after — this avoids
+ * depending on a theme's `accent-color` support at all, since some
+ * Bootstrap-based themes paint their OWN checked state via
+ * `appearance: none` + a background-image, which silently ignores
+ * `accent-color` entirely.
+ */
+.simple-stripe-donation-card .form-item-anonymous {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.simple-stripe-donation-card .form-item-anonymous input[type='checkbox'] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+}
+
+.simple-stripe-donation-card .form-item-anonymous label {
+  position: relative;
+  display: block !important;
+  margin: 0 !important;
+  padding-left: 1.75rem;
+  font-weight: 400 !important;
+  cursor: pointer;
+  min-height: 1.25rem;
+}
+
+.simple-stripe-donation-card .form-item-anonymous label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.15rem;
+  height: 1.15rem;
+  background: var(--ssd-surface, #ffffff);
+  border: 1.5px solid var(--ssd-border, #e2e8f0);
+  border-radius: 0.25rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.simple-stripe-donation-card .form-item-anonymous input:checked + label::before {
+  background: var(--ssd-primary, #0e7490);
+  border-color: var(--ssd-primary, #0e7490);
+}
+
+.simple-stripe-donation-card .form-item-anonymous input:checked + label::after {
+  content: '';
+  position: absolute;
+  left: 0.22rem;
+  top: 0.5rem;
+  width: 0.6rem;
+  height: 0.32rem;
+  transform: translateY(-50%) rotate(-45deg);
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+.simple-stripe-donation-card .form-item-anonymous input:focus-visible + label::before {
+  box-shadow: var(--ssd-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.35));
+}
+
+/* ------------------------------------------------------------------ */
+/* Errors                                                                */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-card .form-item--error input,
+.simple-stripe-donation-card .form-item--error textarea {
+  border-color: var(--ssd-danger, #b91c1c) !important;
+}
+
+.simple-stripe-donation-card .form-item--error-message {
+  margin-top: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ssd-danger-surface, #fef2f2);
+  color: var(--ssd-danger, #b91c1c);
+  border-radius: var(--ssd-radius-sm, 0.5rem);
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Submit button                                                        */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-form-wrapper .form-actions {
+  margin-top: 1.5rem;
+}
+
+/* Drupal always adds the plain "button" class to #type=submit elements;
+ * some themes key off that class to swap in their own component classes
+ * (e.g. Bootstrap's btn/btn-outline-primary) on top of it. !important
+ * here guarantees our look wins regardless of what else gets added. */
+.simple-stripe-donation-form-wrapper .form-actions .button {
+  display: block !important;
+  width: 100% !important;
+  padding: 0.75rem 1.25rem !important;
+  min-height: 44px;
+  background: var(--ssd-cta, #ea580c) !important;
+  color: var(--ssd-cta-contrast, #ffffff) !important;
+  border: none !important;
+  border-radius: var(--ssd-radius-sm, 0.5rem) !important;
+  box-shadow: none !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.simple-stripe-donation-form-wrapper .form-actions .button:hover {
+  background: var(--ssd-cta-strong, #c2410c) !important;
+  color: var(--ssd-cta-contrast, #ffffff) !important;
+}
+
+.simple-stripe-donation-form-wrapper .form-actions .button:active {
+  transform: translateY(1px);
+}
+
+.simple-stripe-donation-form-wrapper .form-actions .button:focus-visible {
+  outline: none;
+  box-shadow: var(--ssd-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.35)) !important;
+}
+
+.simple-stripe-donation-form-wrapper .form-actions .button:disabled,
+.simple-stripe-donation-form-wrapper .form-actions .button.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simple-stripe-donation-form-wrapper * {
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Status pages (/donate/success, /donate/cancel)                       */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-status {
+  max-width: 30rem;
+  /* Center on the page's main content column, the same way the form
+   * wrapper centers itself. */
+  margin: 0 auto;
+  padding: 2rem 1.75rem;
+  background: var(--ssd-surface, #ffffff);
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  border-left-width: 4px;
+  border-radius: var(--ssd-radius, 0.75rem);
+  box-shadow: var(--ssd-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+  color: var(--ssd-text, #0f172a);
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.simple-stripe-donation-status--succeeded,
+.simple-stripe-donation-status--confirmed_pending_webhook {
+  border-left-color: var(--ssd-success, #15803d);
+}
+
+.simple-stripe-donation-status--failed,
+.simple-stripe-donation-status--expired,
+.simple-stripe-donation-status--unknown {
+  border-left-color: var(--ssd-danger, #b91c1c);
+}
+
+.simple-stripe-donation-status--pending,
+.simple-stripe-donation-status--cancelled,
+.simple-stripe-donation-status--refunded {
+  border-left-color: var(--ssd-warning, #b45309);
+}
+
+/* Icon badge */
+
+.simple-stripe-donation-status__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+}
+
+.simple-stripe-donation-status__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.simple-stripe-donation-status--succeeded .simple-stripe-donation-status__icon,
+.simple-stripe-donation-status--confirmed_pending_webhook .simple-stripe-donation-status__icon {
+  background: var(--ssd-success-surface, #f0fdf4);
+  color: var(--ssd-success, #15803d);
+}
+
+.simple-stripe-donation-status--failed .simple-stripe-donation-status__icon,
+.simple-stripe-donation-status--expired .simple-stripe-donation-status__icon,
+.simple-stripe-donation-status--unknown .simple-stripe-donation-status__icon {
+  background: var(--ssd-danger-surface, #fef2f2);
+  color: var(--ssd-danger, #b91c1c);
+}
+
+.simple-stripe-donation-status--pending .simple-stripe-donation-status__icon,
+.simple-stripe-donation-status--cancelled .simple-stripe-donation-status__icon,
+.simple-stripe-donation-status--refunded .simple-stripe-donation-status__icon {
+  background: var(--ssd-warning-surface, #fffbeb);
+  color: var(--ssd-warning, #b45309);
+}
+
+/* Heading / message */
+
+.simple-stripe-donation-status h3 {
+  margin: 0 0 0.625rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ssd-text, #0f172a);
+}
+
+.simple-stripe-donation-status__message {
+  margin: 0 0 1.25rem;
+  color: var(--ssd-text-muted, #475569);
+}
+
+/* Reference chip */
+
+.simple-stripe-donation-status__reference {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--ssd-surface-muted, #f8fafc);
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  border-radius: var(--ssd-radius-sm, 0.5rem);
+  font-size: 0.875rem;
+}
+
+.simple-stripe-donation-status__reference dt {
+  color: var(--ssd-text-muted, #475569);
+}
+
+.simple-stripe-donation-status__reference dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ssd-text, #0f172a);
+}
+
+/* Actions */
+
+.simple-stripe-donation-status__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.simple-stripe-donation-status__action {
+  display: block;
+  padding: 0.7rem 1.25rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: var(--ssd-radius-sm, 0.5rem);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.simple-stripe-donation-status__action--primary {
+  background: var(--ssd-cta, #ea580c);
+  color: var(--ssd-cta-contrast, #ffffff);
+  border: 1px solid transparent;
+}
+
+.simple-stripe-donation-status__action--primary:hover {
+  background: var(--ssd-cta-strong, #c2410c);
+  color: var(--ssd-cta-contrast, #ffffff);
+}
+
+.simple-stripe-donation-status__action--secondary {
+  background: transparent;
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  color: var(--ssd-text, #0f172a);
+}
+
+.simple-stripe-donation-status__action--secondary:hover {
+  border-color: var(--ssd-primary, #0e7490);
+  color: var(--ssd-primary-strong, #155e75);
+}
+
+.simple-stripe-donation-status__action:focus-visible {
+  outline: none;
+  box-shadow: var(--ssd-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.35));
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin report — summary tiles                                        */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.simple-stripe-donation-report-summary__item {
+  position: relative;
+  padding: 1rem 1.1rem;
+  background: var(--ssd-surface, #ffffff);
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  border-left-width: 4px;
+  border-left-color: var(--ssd-primary, #0e7490);
+  border-radius: var(--ssd-radius-sm, 0.5rem);
+  box-shadow: var(--ssd-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.simple-stripe-donation-report-summary__item--succeeded {
+  border-left-color: var(--ssd-success, #15803d);
+}
+
+.simple-stripe-donation-report-summary__item--amount {
+  border-left-color: var(--ssd-cta, #ea580c);
+}
+
+.simple-stripe-donation-report-summary__item--average {
+  border-left-color: var(--ssd-text-muted, #475569);
+}
+
+.simple-stripe-donation-report-summary__label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.simple-stripe-donation-report-summary__value {
+  display: block;
+  color: var(--ssd-text, #0f172a);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin report — donation detail page                                 */
+/* ------------------------------------------------------------------ */
+
+.simple-stripe-donation-detail {
+  max-width: 48rem;
+  color: var(--ssd-text, #0f172a);
+}
+
+.simple-stripe-donation-detail__back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.simple-stripe-donation-detail__back:hover {
+  color: var(--ssd-primary, #0e7490);
+}
+
+.simple-stripe-donation-detail__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  background: var(--ssd-surface, #ffffff);
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  border-radius: var(--ssd-radius, 0.75rem);
+  box-shadow: var(--ssd-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.simple-stripe-donation-detail__reference {
+  margin-bottom: 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.simple-stripe-donation-detail__amount {
+  color: var(--ssd-primary-strong, #155e75);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.simple-stripe-donation-detail__status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: var(--ssd-surface-muted, #f8fafc);
+  color: var(--ssd-text-muted, #475569);
+}
+
+.simple-stripe-donation-detail__status-badge--succeeded {
+  background: var(--ssd-success-surface, #f0fdf4);
+  color: var(--ssd-success, #15803d);
+}
+
+.simple-stripe-donation-detail__status-badge--failed,
+.simple-stripe-donation-detail__status-badge--expired {
+  background: var(--ssd-danger-surface, #fef2f2);
+  color: var(--ssd-danger, #b91c1c);
+}
+
+.simple-stripe-donation-detail__status-badge--pending,
+.simple-stripe-donation-detail__status-badge--refunded {
+  background: var(--ssd-warning-surface, #fffbeb);
+  color: var(--ssd-warning, #b45309);
+}
+
+.simple-stripe-donation-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.simple-stripe-donation-detail__section {
+  padding: 1.25rem 1.5rem;
+  background: var(--ssd-surface, #ffffff);
+  border: 1px solid var(--ssd-border, #e2e8f0);
+  border-radius: var(--ssd-radius, 0.75rem);
+  box-shadow: var(--ssd-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.simple-stripe-donation-detail__section h3 {
+  margin: 0 0 0.9rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.simple-stripe-donation-detail__fields {
+  margin: 0;
+}
+
+.simple-stripe-donation-detail__field {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ssd-border, #e2e8f0);
+}
+
+.simple-stripe-donation-detail__field:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.simple-stripe-donation-detail__field dt {
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.85rem;
+}
+
+.simple-stripe-donation-detail__field dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.simple-stripe-donation-detail__mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  word-break: break-all;
+}
+
+.simple-stripe-donation-detail__message {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ssd-border, #e2e8f0);
+}
+
+.simple-stripe-donation-detail__message dt {
+  margin-bottom: 0.35rem;
+  color: var(--ssd-text-muted, #475569);
+  font-size: 0.85rem;
+}
+
+.simple-stripe-donation-detail__message dd {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.simple-stripe-donation-detail__actions {
+  margin-top: 1.25rem;
+}
+
+.simple-stripe-donation-detail__actions .simple-stripe-donation-status__action {
+  display: inline-block;
+  width: auto;
+}

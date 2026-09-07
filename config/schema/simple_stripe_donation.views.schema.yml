@@ -1,0 +1,14 @@
+# Schema for Simple Stripe Donation's custom Views field/filter/area plugins.
+#
+# Field and area plugins add no options beyond their base classes, so the
+# generic 'views.field.*'/'views.area.*' wildcards (see views.field.schema.yml
+# and views.area.schema.yml) already cover them. The amount filter extends
+# NumericFilter and needs its 'value' sub-schema mapped the same way
+# views.filter.date does, or Config::save() fails casting filters.*.value.min.
+views.filter.simple_stripe_donation_amount:
+  type: views.filter.numeric
+  label: 'Donation amount'
+
+views.filter_value.simple_stripe_donation_amount:
+  type: views.filter_value.numeric
+  label: 'Donation amount value'

@@ -1,0 +1,14 @@
+administer simple stripe donation:
+  title: 'Administer Simple Stripe Donation'
+  description: 'Configure Stripe API keys, donation amounts, and email settings. Grants access to sensitive configuration.'
+  restrict access: true
+
+view simple stripe donations:
+  title: 'View Simple Stripe Donation reports'
+  description: 'View the donation report, including donor names and email addresses.'
+  restrict access: true
+
+manage simple stripe donations:
+  title: 'Manage Simple Stripe Donations'
+  description: 'Issue refunds and manage individual donation records.'
+  restrict access: true

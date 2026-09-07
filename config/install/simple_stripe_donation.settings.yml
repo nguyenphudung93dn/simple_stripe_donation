@@ -1,0 +1,31 @@
+stripe:
+  mode: test
+  currency: usd
+  test_publishable_key: ''
+  test_secret_key: ''
+  test_webhook_secret: ''
+  live_publishable_key: ''
+  live_secret_key: ''
+  live_webhook_secret: ''
+donation:
+  preset_amounts:
+    - '10'
+    - '25'
+    - '50'
+    - '100'
+  minimum_amount: '1'
+  maximum_amount: '10000'
+  allow_custom_amount: true
+  allow_donor_name: true
+  allow_donor_phone: true
+  allow_donor_address: true
+  allow_donor_message: true
+  allow_anonymous: true
+  reference_prefix: 'DON'
+  reference_digits: 6
+email:
+  send_donor_receipt: true
+  send_admin_notification: true
+  admin_notification_email: ''
+  donor_subject: 'Thank you for your donation - [donation:reference]'
+  admin_subject: 'New donation received - [donation:reference]'

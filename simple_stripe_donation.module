@@ -1,0 +1,152 @@
+<?php
+
+/**
+ * @file
+ * Simple Stripe Donation: theme, mail and help hooks.
+ *
+ * Business logic lives in src/Service and src/Repository, not here — this
+ * file only wires Drupal's procedural hook system to those services.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function simple_stripe_donation_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.simple_stripe_donation':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Simple Stripe Donation provides a lightweight, one-time donation system powered by Stripe Checkout. It does not depend on Drupal Commerce. See the module README.md for full setup instructions.') . '</p>';
+      return $output;
+  }
+  return '';
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simple_stripe_donation_theme($existing, $type, $theme, $path) {
+  return [
+    'simple_stripe_donation_form' => [
+      'render element' => 'form',
+      'template' => 'simple-stripe-donation-form',
+    ],
+    'simple_stripe_donation_status' => [
+      'variables' => [
+        'status' => NULL,
+        'heading' => NULL,
+        'message' => NULL,
+        'donation' => NULL,
+        'reference' => NULL,
+        'try_again_url' => NULL,
+      ],
+      'template' => 'simple-stripe-donation-status',
+    ],
+    'simple_stripe_donation_email_donor' => [
+      'variables' => [
+        'donation' => NULL,
+        'reference' => NULL,
+        'amount_display' => NULL,
+        'currency' => NULL,
+        'date' => NULL,
+      ],
+      'template' => 'simple-stripe-donation-email-donor',
+    ],
+    'simple_stripe_donation_email_admin' => [
+      'variables' => [
+        'donation' => NULL,
+        'reference' => NULL,
+        'amount_display' => NULL,
+        'currency' => NULL,
+        'date' => NULL,
+      ],
+      'template' => 'simple-stripe-donation-email-admin',
+    ],
+    'simple_stripe_donation_detail' => [
+      'variables' => [
+        'donation' => NULL,
+        'reference' => NULL,
+        'amount_display' => NULL,
+        'currency' => NULL,
+        'refund_url' => NULL,
+        'back_url' => NULL,
+      ],
+      'template' => 'simple-stripe-donation-detail',
+    ],
+  ];
+}
+
+/**
+ * Implements template_preprocess_simple_stripe_donation_form().
+ *
+ * Lifts the optional #description set by DonationBlock::build() into a
+ * plain template variable, so the Twig template stays free of render-array
+ * internals.
+ */
+function template_preprocess_simple_stripe_donation_form(array &$variables) {
+  $variables['description'] = $variables['form']['#description'] ?? NULL;
+  unset($variables['form']['#description']);
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * Builds the donor receipt and admin notification emails. Called only
+ * from DonationService, only after a donation has actually succeeded
+ * (never before payment is confirmed), and only once per donation thanks
+ * to DonationService's guarded pending -> succeeded transition.
+ */
+function simple_stripe_donation_mail($key, array &$message, array $params) {
+  $donation = $params['donation'];
+  $reference = $params['reference'];
+
+  /** @var \Drupal\simple_stripe_donation\Service\MoneyService $money_service */
+  $money_service = \Drupal::service('simple_stripe_donation.money_service');
+  $amount_display = $money_service->formatMajorUnits((int) $donation->amount, $donation->currency);
+  $currency = strtoupper($donation->currency);
+  $timestamp = (int) ($donation->completed ?: $donation->created);
+  $date = \Drupal::service('date.formatter')->format($timestamp, 'custom', 'F j, Y');
+
+  $config = \Drupal::config('simple_stripe_donation.settings');
+  $replacements = [
+    '[donation:reference]' => $reference,
+    '[donation:amount]' => $amount_display,
+    '[donation:currency]' => $currency,
+    '[donation:date]' => $date,
+  ];
+
+  $template_vars = [
+    '#donation' => $donation,
+    '#reference' => $reference,
+    '#amount_display' => $amount_display,
+    '#currency' => $currency,
+    '#date' => $date,
+  ];
+
+  $renderer = \Drupal::service('renderer');
+
+  switch ($key) {
+    case 'donor_receipt':
+      $subject = $config->get('email.donor_subject') ?: 'Thank you for your donation - [donation:reference]';
+      $message['subject'] = _simple_stripe_donation_sanitize_header(strtr($subject, $replacements));
+      $build = ['#theme' => 'simple_stripe_donation_email_donor'] + $template_vars;
+      $message['body'][] = $renderer->renderInIsolation($build);
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+      break;
+
+    case 'admin_notification':
+      $subject = $config->get('email.admin_subject') ?: 'New donation received - [donation:reference]';
+      $message['subject'] = _simple_stripe_donation_sanitize_header(strtr($subject, $replacements));
+      $build = ['#theme' => 'simple_stripe_donation_email_admin'] + $template_vars;
+      $message['body'][] = $renderer->renderInIsolation($build);
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+      break;
+  }
+}
+
+/**
+ * Strips CR/LF from a value before it is used as a mail header, preventing
+ * header injection via donor-supplied or config-supplied text.
+ */
+function _simple_stripe_donation_sanitize_header(string $value): string {
+  return trim(str_replace(["\r", "\n"], '', $value));
+}

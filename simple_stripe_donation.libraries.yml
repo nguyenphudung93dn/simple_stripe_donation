@@ -1,0 +1,10 @@
+donation_form:
+  version: 1.x
+  css:
+    theme:
+      css/donation.css: {}
+  js:
+    js/donation.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

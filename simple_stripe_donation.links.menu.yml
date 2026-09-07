@@ -1,0 +1,15 @@
+simple_stripe_donation.settings:
+  title: 'Simple Stripe Donation'
+  description: 'Configure Stripe, donation amounts and email settings.'
+  route_name: simple_stripe_donation.settings
+  parent: system.admin_config_services
+  weight: 10
+
+simple_stripe_donation.report:
+  title: 'Simple Stripe Donations'
+  description: 'View and filter donation records, and issue refunds.'
+  # Route owned by the shipped view's page display, not this module — see
+  # config/install/views.view.simple_stripe_donation_report.yml.
+  route_name: view.simple_stripe_donation_report.page_1
+  parent: system.admin_reports
+  weight: 10

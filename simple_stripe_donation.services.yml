@@ -1,0 +1,37 @@
+services:
+  simple_stripe_donation.money_service:
+    class: Drupal\simple_stripe_donation\Service\MoneyService
+
+  simple_stripe_donation.stripe_service:
+    class: Drupal\simple_stripe_donation\Service\StripeService
+    arguments:
+      - '@config.factory'
+      - '@logger.factory'
+
+  simple_stripe_donation.donation_repository:
+    class: Drupal\simple_stripe_donation\Repository\DonationRepository
+    arguments:
+      - '@database'
+
+  simple_stripe_donation.donation_service:
+    class: Drupal\simple_stripe_donation\Service\DonationService
+    arguments:
+      - '@simple_stripe_donation.donation_repository'
+      - '@simple_stripe_donation.stripe_service'
+      - '@simple_stripe_donation.money_service'
+      - '@config.factory'
+      - '@logger.factory'
+      - '@uuid'
+      - '@plugin.manager.mail'
+      - '@language_manager'
+      - '@email.validator'
+      - '@datetime.time'
+
+  simple_stripe_donation.webhook_service:
+    class: Drupal\simple_stripe_donation\Service\WebhookService
+    arguments:
+      - '@database'
+      - '@simple_stripe_donation.stripe_service'
+      - '@simple_stripe_donation.donation_service'
+      - '@logger.factory'
+      - '@datetime.time'

@@ -1,0 +1,283 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Simple Stripe Donation module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function simple_stripe_donation_schema() {
+  $schema['simple_stripe_donation'] = [
+    'description' => 'Stores individual donation records made through Stripe Checkout.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key: internal donation ID.',
+      ],
+      'uuid' => [
+        'type' => 'varchar_ascii',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'Universally unique identifier for this donation, safe to expose to the donor as a reference.',
+      ],
+      'amount' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Donation amount in the smallest currency unit (e.g. cents for USD, whole units for JPY).',
+      ],
+      'currency' => [
+        'type' => 'varchar_ascii',
+        'length' => 3,
+        'not null' => TRUE,
+        'description' => 'ISO 4217 currency code, lowercase (e.g. usd).',
+      ],
+      'status' => [
+        'type' => 'varchar_ascii',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'pending',
+        'description' => 'Donation status: pending, succeeded, failed, expired or refunded.',
+      ],
+      'donor_name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Donor supplied name, if provided.',
+      ],
+      'donor_email' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Donor supplied email address.',
+      ],
+      'donor_phone' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => FALSE,
+        'description' => 'Donor supplied phone number, if provided.',
+      ],
+      'donor_address' => [
+        'type' => 'varchar',
+        'length' => 500,
+        'not null' => FALSE,
+        'description' => 'Donor supplied postal address, if provided.',
+      ],
+      'message' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'Optional donor message.',
+      ],
+      'anonymous' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Whether the donor asked to be listed anonymously (1) or not (0).',
+      ],
+      'stripe_checkout_session_id' => [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The Stripe Checkout Session ID associated with this donation.',
+      ],
+      'stripe_payment_intent_id' => [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The Stripe PaymentIntent ID once available.',
+      ],
+      'stripe_customer_id' => [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The Stripe Customer ID, if Stripe created one for this payment.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Unix timestamp when the donation record was created (pending).',
+      ],
+      'completed' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Unix timestamp when the donation succeeded, per Stripe confirmation.',
+      ],
+      'refunded' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Unix timestamp when the donation was refunded, per Stripe confirmation.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'The {users}.uid of the logged-in donor, if any. NULL for guest donations.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'donation_uuid' => ['uuid'],
+      'donation_checkout_session' => ['stripe_checkout_session_id'],
+    ],
+    'indexes' => [
+      'donation_payment_intent' => ['stripe_payment_intent_id'],
+      'donation_donor_email' => ['donor_email'],
+      'donation_status' => ['status'],
+      'donation_created' => ['created'],
+      'donation_uid' => ['uid'],
+    ],
+  ];
+
+  $schema['simple_stripe_donation_event'] = [
+    'description' => 'Stores raw Stripe webhook events for auditing and idempotent processing.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key: internal event ID.',
+      ],
+      'stripe_event_id' => [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The Stripe event ID (e.g. evt_123). Unique so retried webhooks cannot be stored twice.',
+      ],
+      'event_type' => [
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The Stripe event type (e.g. checkout.session.completed).',
+      ],
+      'payload' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'The raw, verified JSON payload of the event.',
+      ],
+      'processed' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Whether this event has been successfully processed (1) or not (0).',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Unix timestamp when the event was received and stored.',
+      ],
+      'processed_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Unix timestamp when the event finished processing.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'event_stripe_event_id' => ['stripe_event_id'],
+    ],
+    'indexes' => [
+      'event_type' => ['event_type'],
+      'event_processed' => ['processed'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Adds donor_phone and donor_address columns to {simple_stripe_donation}.
+ */
+function simple_stripe_donation_update_9001() {
+  $schema = \Drupal::database()->schema();
+
+  if (!$schema->fieldExists('simple_stripe_donation', 'donor_phone')) {
+    $schema->addField('simple_stripe_donation', 'donor_phone', [
+      'type' => 'varchar',
+      'length' => 64,
+      'not null' => FALSE,
+      'description' => 'Donor supplied phone number, if provided.',
+    ]);
+  }
+
+  if (!$schema->fieldExists('simple_stripe_donation', 'donor_address')) {
+    $schema->addField('simple_stripe_donation', 'donor_address', [
+      'type' => 'varchar',
+      'length' => 500,
+      'not null' => FALSE,
+      'description' => 'Donor supplied postal address, if provided.',
+    ]);
+  }
+
+  $config = \Drupal::configFactory()->getEditable('simple_stripe_donation.settings');
+  if ($config->get('donation.allow_donor_phone') === NULL) {
+    $config->set('donation.allow_donor_phone', TRUE);
+  }
+  if ($config->get('donation.allow_donor_address') === NULL) {
+    $config->set('donation.allow_donor_address', TRUE);
+  }
+  $config->save();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function simple_stripe_donation_requirements($phase) {
+  $requirements = [];
+
+  if ($phase !== 'runtime') {
+    return $requirements;
+  }
+
+  $requirements['simple_stripe_donation_sdk'] = [
+    'title' => t('Simple Stripe Donation: Stripe SDK'),
+  ];
+
+  if (class_exists('\Stripe\StripeClient')) {
+    $requirements['simple_stripe_donation_sdk']['value'] = t('Installed');
+    $requirements['simple_stripe_donation_sdk']['severity'] = REQUIREMENT_OK;
+  }
+  else {
+    $requirements['simple_stripe_donation_sdk']['value'] = t('Not found');
+    $requirements['simple_stripe_donation_sdk']['description'] = t('The stripe/stripe-php library was not found. Run "composer require stripe/stripe-php" at the project root.');
+    $requirements['simple_stripe_donation_sdk']['severity'] = REQUIREMENT_ERROR;
+  }
+
+  $config = \Drupal::config('simple_stripe_donation.settings');
+  $mode = $config->get('stripe.mode') ?: 'test';
+  $secret_key = getenv('STRIPE_SECRET_KEY') ?: $config->get('stripe.' . $mode . '_secret_key');
+  $webhook_secret = getenv('STRIPE_WEBHOOK_SECRET') ?: $config->get('stripe.' . $mode . '_webhook_secret');
+
+  $requirements['simple_stripe_donation_config'] = [
+    'title' => t('Simple Stripe Donation: configuration'),
+  ];
+
+  if (empty($secret_key) || empty($webhook_secret)) {
+    $requirements['simple_stripe_donation_config']['value'] = t('Incomplete');
+    $requirements['simple_stripe_donation_config']['description'] = t('Stripe secret key and/or webhook signing secret are not configured for %mode mode. Configure them at <a href=":url">Simple Stripe Donation settings</a> or via environment variables.', [
+      '%mode' => $mode,
+      ':url' => \Drupal\Core\Url::fromRoute('simple_stripe_donation.settings')->toString(),
+    ]);
+    $requirements['simple_stripe_donation_config']['severity'] = REQUIREMENT_WARNING;
+  }
+  else {
+    $requirements['simple_stripe_donation_config']['value'] = t('Configured (@mode mode)', ['@mode' => $mode]);
+    $requirements['simple_stripe_donation_config']['severity'] = REQUIREMENT_OK;
+  }
+
+  return $requirements;
+}

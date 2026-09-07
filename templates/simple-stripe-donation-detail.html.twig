@@ -1,0 +1,113 @@
+{#
+/**
+ * @file
+ * Admin detail page for a single donation record.
+ *
+ * Available variables:
+ * - donation: The donation row object.
+ * - reference: Pre-formatted reference (e.g. DON-000123).
+ * - amount_display: Pre-formatted major-unit amount (e.g. "25.50").
+ * - currency: Uppercase ISO 4217 currency code.
+ * - refund_url: URL to the refund confirmation form, or NULL if the
+ *   current user may not refund this donation (wrong status or missing
+ *   permission).
+ * - back_url: URL back to the donation report list.
+ */
+#}
+<div class="simple-stripe-donation-detail">
+  <a class="simple-stripe-donation-detail__back" href="{{ back_url }}">&larr; {{ 'Back to donations'|t }}</a>
+
+  <div class="simple-stripe-donation-detail__header">
+    <div>
+      <div class="simple-stripe-donation-detail__reference">{{ reference }}</div>
+      <span class="simple-stripe-donation-detail__status-badge simple-stripe-donation-detail__status-badge--{{ donation.status }}">
+        {{ donation.status|capitalize }}
+      </span>
+    </div>
+    <div class="simple-stripe-donation-detail__amount">{{ amount_display }} {{ currency }}</div>
+  </div>
+
+  <div class="simple-stripe-donation-detail__grid">
+    <section class="simple-stripe-donation-detail__section">
+      <h3>{{ 'Donor'|t }}</h3>
+      <dl class="simple-stripe-donation-detail__fields">
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Name'|t }}</dt>
+          <dd>{{ donation.anonymous ? 'Anonymous'|t : (donation.donor_name ?: 'Not provided'|t) }}</dd>
+        </div>
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Email'|t }}</dt>
+          <dd>{{ donation.donor_email ?: '—' }}</dd>
+        </div>
+        {% if donation.donor_phone %}
+          <div class="simple-stripe-donation-detail__field">
+            <dt>{{ 'Phone'|t }}</dt>
+            <dd>{{ donation.donor_phone }}</dd>
+          </div>
+        {% endif %}
+        {% if donation.donor_address %}
+          <div class="simple-stripe-donation-detail__field">
+            <dt>{{ 'Address'|t }}</dt>
+            <dd>{{ donation.donor_address }}</dd>
+          </div>
+        {% endif %}
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Anonymous'|t }}</dt>
+          <dd>{{ donation.anonymous ? 'Yes'|t : 'No'|t }}</dd>
+        </div>
+      </dl>
+      {% if donation.message %}
+        <div class="simple-stripe-donation-detail__message">
+          <dt>{{ 'Message'|t }}</dt>
+          <dd>{{ donation.message }}</dd>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="simple-stripe-donation-detail__section">
+      <h3>{{ 'Timeline'|t }}</h3>
+      <dl class="simple-stripe-donation-detail__fields">
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Created'|t }}</dt>
+          <dd>{{ donation.created|date('M j, Y g:ia') }}</dd>
+        </div>
+        {% if donation.completed %}
+          <div class="simple-stripe-donation-detail__field">
+            <dt>{{ 'Completed'|t }}</dt>
+            <dd>{{ donation.completed|date('M j, Y g:ia') }}</dd>
+          </div>
+        {% endif %}
+        {% if donation.refunded %}
+          <div class="simple-stripe-donation-detail__field">
+            <dt>{{ 'Refunded'|t }}</dt>
+            <dd>{{ donation.refunded|date('M j, Y g:ia') }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </section>
+
+    <section class="simple-stripe-donation-detail__section">
+      <h3>{{ 'Stripe'|t }}</h3>
+      <dl class="simple-stripe-donation-detail__fields">
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Checkout session'|t }}</dt>
+          <dd class="simple-stripe-donation-detail__mono">{{ donation.stripe_checkout_session_id ?: '—' }}</dd>
+        </div>
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Payment intent'|t }}</dt>
+          <dd class="simple-stripe-donation-detail__mono">{{ donation.stripe_payment_intent_id ?: '—' }}</dd>
+        </div>
+        <div class="simple-stripe-donation-detail__field">
+          <dt>{{ 'Customer'|t }}</dt>
+          <dd class="simple-stripe-donation-detail__mono">{{ donation.stripe_customer_id ?: '—' }}</dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+
+  {% if refund_url %}
+    <div class="simple-stripe-donation-detail__actions">
+      <a class="simple-stripe-donation-status__action simple-stripe-donation-status__action--primary" href="{{ refund_url }}">{{ 'Refund donation'|t }}</a>
+    </div>
+  {% endif %}
+</div>
