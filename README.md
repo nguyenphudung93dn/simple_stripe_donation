@@ -297,22 +297,3 @@ vendor/bin/phpcs --standard=Drupal,DrupalPractice modules/simple_stripe_donation
   are not yet confirmed via a `charge.refunded` webhook — v1 only confirms
   refunds that Stripe's refund-creation API call reports as `succeeded`
   synchronously.
-- Report summary totals assume a single active currency; multi-currency
-  aggregation is not implemented (see roadmap).
-
-## 16. Future roadmap
-
-Deliberately **not** implemented in v1, but the architecture (Stripe
-metadata carrying `donation_id`, a dedicated webhook event table, a service
-layer independent of the transport) is designed so these can be added
-without a rewrite:
-
-- Recurring/subscription donations (monthly/yearly)
-- Stripe Customer + Customer Portal integration
-- Fundraising campaigns and goals
-- Webform and Paragraphs integration
-- CSV export of the donation report
-- A REST/JSON:API endpoint for donations
-- Multi-currency report aggregation
-- Tax receipts
-- `charge.refunded` webhook handling for asynchronous refund confirmation
